@@ -1,17 +1,10 @@
 import React, { Component } from "react";
 import * as d3 from "d3";
 
-let data = [];
-let eje_Y_max = 0;
-let iheight = 0;
-let y = null;
-let g1 = null;
-let bars = null;
-
 class graphic extends Component {
 
   componentDidMount() {
-     data = [
+     let data = [
       { name: "Medellín", index2005: 3, index2006: 33 },
       { name: "Cali", index2005: 39, index2006: 45 },
       { name: "Bogotá", index2005: 7, index2006: 31 },
@@ -29,8 +22,9 @@ class graphic extends Component {
           const height = 500;
           const margin = { top:40, left:80, bottom: 40, right: 10};
           const iwidth = width - margin.left - margin.right;
-          iheight = height - margin.top -margin.bottom;
-          const svg = canvas.append("svg");
+          const iheight = height - margin.top -margin.bottom;
+          let svg = canvas.append("svg");
+          let eje_Y_max = 0;
   
           data.forEach(element => {
               if((element.index2005) >= eje_Y_max) {
@@ -41,9 +35,9 @@ class graphic extends Component {
           svg.attr("width", width);
           svg.attr("height", height);
           
-          g1 = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+          let g1 = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
           
-          y = d3.scaleLinear() 
+          let y = d3.scaleLinear() 
               .domain([0, eje_Y_max])
               .range([iheight, 0]);
           
@@ -52,7 +46,7 @@ class graphic extends Component {
           .range([0, iwidth])
           .padding(0.1); 
           
-          bars = g1.selectAll("rect").data(data);
+          let bars = g1.selectAll("rect").data(data);
   
           bars.enter().append("rect")
               .attr("class", "bar")
@@ -76,27 +70,43 @@ class graphic extends Component {
           .attr("y", 0 - (margin.top / 2))
           .attr("text-anchor", "middle")  
           .style("font-size", "16px")   
-          .text("Index del año 2005 obtenido por cada ciudad colombiana");
-  }
-  transitionBar(){
-    console.log("hola");
-    eje_Y_max = 0;
+          .text("Index del año obtenido por cada ciudad colombiana");
 
-    data.forEach(element => {
-      if((element.index2006) >= eje_Y_max) {
-        eje_Y_max = parseInt(element.index2006);
-      }
-    });
+          d3.select("#cambiarAnio").on("click", function () {
+            eje_Y_max = 0;
 
-    y.domain([0, eje_Y_max])
+            data.forEach(element => { 
+              if((element.index2006) >= eje_Y_max) {
+                eje_Y_max = parseInt(element.index2006);
+              }
+            });
+        
+            y.domain([0, eje_Y_max])
+        
+            svg.selectAll("rect").data(data).transition()
+            .style("fill", "orange")
+            .attr("y", d => y(parseInt(d.index2006)))
+            .attr("height", d => iheight - y(parseInt(d.index2006)))
 
-    console.log(bars._groups);
-    g1.transition()
-    .style("fill", "orange")
-    .attr("y", 200)
-    .attr("height", 30)
+        });
 
-    g1.transition().text("Index del año 2006 obtenido por cada ciudad colombiana");
+        d3.select("#resetear").on("click", function () {
+          eje_Y_max = 0;
+
+          data.forEach(element => { 
+            if((element.index2005) >= eje_Y_max) {
+              eje_Y_max = parseInt(element.index2005);
+            }
+          });
+      
+          y.domain([0, eje_Y_max])
+      
+          svg.selectAll("rect").data(data).transition()
+          .style("fill", "steelblue")
+          .attr("y", d => y(parseInt(d.index2005)))
+          .attr("height", d => iheight - y(parseInt(d.index2005)))
+
+      });
 
   }
   render() {
@@ -105,11 +115,11 @@ class graphic extends Component {
         <h1>Gráfica Dinámica</h1>
       </div>
       <div className = "col-6">
-      <button onClick={() => this.transitionBar()}>
-          Cambiar de año
+      <button id = "cambiarAnio">
+          Año 2016
         </button>
-        <button onClick={() => this.transition()}>
-          Resetear
+        <button id = "resetear">
+          Resetear (2015)
         </button>
       </div>
     </div>;
